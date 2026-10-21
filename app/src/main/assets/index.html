@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KHEÏTTE</title>
+<style>
+body{margin:0;background:#101114;color:white;font-family:Arial,sans-serif;display:flex;flex-direction:column;height:100vh}
+header{padding:20px;background:#191a20;border-bottom:1px solid #333;font-size:22px;font-weight:bold;color:#55d6a0}
+#messages{flex:1;overflow:auto;padding:16px}
+.msg{padding:12px 15px;margin:10px 0;border-radius:14px;max-width:85%;line-height:1.5;white-space:pre-wrap}
+.bot{background:#24262d;align-self:flex-start}
+.user{background:#176b50;margin-left:auto}
+#zone{display:flex;gap:8px;padding:12px;background:#191a20}
+input{flex:1;min-width:0;padding:13px;border-radius:12px;border:1px solid #444;background:#101114;color:white;font-size:16px}
+button{border:0;border-radius:12px;padding:12px;background:#55d6a0;color:#101114;font-weight:bold}
+</style>
+</head>
+<body>
+<header>✦ KHEÏTTE</header>
+<div id="messages">
+<div class="msg bot">Bonjour Kheran ! Je suis KHEÏTTE, ton assistant personnel. Comment puis-je t’aider ?</div>
+</div>
+<div id="zone">
+<input id="question" placeholder="Écris ton message...">
+<button onclick="envoyer()">Envoyer</button>
+</div>
+<script>
+function envoyer(){
+const input=document.getElementById('question');
+const texte=input.value.trim();
+if(!texte)return;
+const messages=document.getElementById('messages');
+const user=document.createElement('div');
+user.className='msg user';
+user.textContent=texte;
+messages.appendChild(user);
+const bot=document.createElement('div');
+bot.className='msg bot';
+bot.textContent="J’ai reçu ton message ! Mon intelligence en ligne sera connectée dans une prochaine étape.";
+messages.appendChild(bot);
+input.value='';
+messages.scrollTop=messages.scrollHeight;
+}
+document.getElementById('question').addEventListener('keydown',e=>{
+if(e.key==='Enter')envoyer();
+});
+</script>
+</body>
+</html>
