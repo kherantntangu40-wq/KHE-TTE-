@@ -38,10 +38,19 @@ messages.appendChild(user);
 const bot=document.createElement('div');
 bot.className='msg bot';
 bot.textContent="Connexion au serveur...";
-fetch("https://khe-itte-api.onrender.com/")
-  .then(r => r.json())
-  .then(data => { bot.textContent = data.message; })
-  .catch(() => { bot.textContent = "Impossible de joindre le serveur. Réessaie."; });
+fetch("https://khe-itte-api.onrender.com/chat", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ message: texte })
+})
+  .then(async r => {
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.erreur || "Erreur du serveur");
+    bot.textContent = data.reponse;
+  })
+  .catch(() => {
+    bot.textContent = "Je n'arrive pas à répondre pour le moment. Réessaie.";
+  });
 messages.appendChild(bot);
 input.value='';
 messages.scrollTop=messages.scrollHeight;
@@ -52,3 +61,4 @@ if(e.key==='Enter')envoyer();
 </script>
 </body>
 </html>
+
