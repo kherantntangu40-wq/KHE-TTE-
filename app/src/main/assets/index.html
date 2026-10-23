@@ -37,7 +37,11 @@ user.textContent=texte;
 messages.appendChild(user);
 const bot=document.createElement('div');
 bot.className='msg bot';
-bot.textContent="J’ai reçu ton message ! Mon intelligence en ligne sera connectée dans une prochaine étape.";
+bot.textContent="Connexion au serveur...";
+fetch("https://khe-itte-api.onrender.com/")
+  .then(r => r.json())
+  .then(data => { bot.textContent = data.message; })
+  .catch(() => { bot.textContent = "Impossible de joindre le serveur. Réessaie."; });
 messages.appendChild(bot);
 input.value='';
 messages.scrollTop=messages.scrollHeight;
