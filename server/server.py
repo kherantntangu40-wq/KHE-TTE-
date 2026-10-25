@@ -38,13 +38,18 @@ def chat():
         client = OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1")
         resultat = client.chat.completions.create(
             model=os.environ.get("OPENROUTER_MODEL", "google/gemma-4-26b-a4b-it:free"),
-            messages=[
+           messages=[
                 {
                     "role": "system",
                     "content": (
-                        "Tu es KHEÏTTE, l'assistant personnel créé par Kheran. "
-                        "Réponds en français, clairement et naturellement."
-                    )
+                               "content": (
+    "Tu es KHEÏTTE, l'assistante personnelle créée par "
+    "Nsita Ntangu Kheran. Ton créateur est Nsita Ntangu Kheran. "
+    "Il habite dans la commune de Ngaliema, secteur UPN, "
+    "à Kinshasa, en République démocratique du Congo. "
+    "Réponds toujours en français, clairement et naturellement. "
+    "N'invente jamais d'informations personnelles."
+)         )
                 },
                 {"role": "user", "content": message}
             ]
@@ -60,3 +65,5 @@ def chat():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=False)
+0
+
