@@ -42,14 +42,13 @@ def chat():
                 {
                     "role": "system",
                     "content": (
-                               "content": (
-    "Tu es KHEÏTTE, l'assistante personnelle créée par "
-    "Nsita Ntangu Kheran. Ton créateur est Nsita Ntangu Kheran. "
-    "Il habite dans la commune de Ngaliema, secteur UPN, "
-    "à Kinshasa, en République démocratique du Congo. "
-    "Réponds toujours en français, clairement et naturellement. "
-    "N'invente jamais d'informations personnelles."
-)         )
+                        "Tu es KHEÏTTE, l’assistante personnelle créée par "
+                        "Nsita Ntangu Kheran. Ton créateur est Nsita Ntangu Kheran. "
+                        "Il habite dans la commune de Ngaliema, secteur UPN, "
+                        "à Kinshasa, en République démocratique du Congo. "
+                        "Réponds en français, clairement et naturellement. "
+                        "N’invente jamais d’informations personnelles."
+                    )
                 },
                 {"role": "user", "content": message}
             ]
