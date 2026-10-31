@@ -5,60 +5,143 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>KHEÏTTE</title>
 <style>
-body{margin:0;background:#101114;color:white;font-family:Arial,sans-serif;display:flex;flex-direction:column;height:100vh}
-header{padding:20px;background:#191a20;border-bottom:1px solid #333;font-size:22px;font-weight:bold;color:#55d6a0}
-#messages{flex:1;overflow:auto;padding:16px}
-.msg{padding:12px 15px;margin:10px 0;border-radius:14px;max-width:85%;line-height:1.5;white-space:pre-wrap}
-.bot{background:#24262d;align-self:flex-start}
+*{box-sizing:border-box}
+body{margin:0;background:#101114;color:white;font-family:Arial,sans-serif;min-height:100vh}
+header{padding:20px;background:#191a20;border-bottom:1px solid #333;color:#55d6a0;font-size:23px;font-weight:bold}
+main{max-width:440px;margin:45px auto;padding:20px}
+.panel{background:#191a20;border:1px solid #333;border-radius:18px;padding:24px}
+h2{text-align:center;color:#55d6a0}
+p{text-align:center;color:#bbb}
+input{width:100%;padding:14px;margin:9px 0;border-radius:10px;border:1px solid #444;background:#101114;color:white;font-size:16px}
+button{width:100%;padding:14px;margin-top:12px;border:0;border-radius:10px;background:#55d6a0;color:#101114;font-weight:bold;font-size:16px}
+.switch{background:transparent;color:#55d6a0;border:1px solid #55d6a0}
+#message{color:#55d6a0;text-align:center;overflow-wrap:anywhere}
+#chat{display:none;max-width:700px;margin:20px auto;padding:15px}
+#messages{height:55vh;overflow:auto;padding:12px}
+.msg{padding:12px;margin:10px 0;border-radius:14px;max-width:85%;line-height:1.5;white-space:pre-wrap}
+.bot{background:#24262d}
 .user{background:#176b50;margin-left:auto}
-#zone{display:flex;gap:8px;padding:12px;background:#191a20}
-input{flex:1;min-width:0;padding:13px;border-radius:12px;border:1px solid #444;background:#101114;color:white;font-size:16px}
-button{border:0;border-radius:12px;padding:12px;background:#55d6a0;color:#101114;font-weight:bold}
+#zone{display:flex;gap:8px}
+#zone input{flex:1;min-width:0}
+#zone button{width:auto}
+#logout{background:#333;color:white}
 </style>
 </head>
 <body>
 <header>✦ KHEÏTTE</header>
+
+<main id="auth">
+<div class="panel">
+<h2 id="titre">Bienvenue sur KHEÏTTE</h2>
+<p id="description">Connecte-toi pour accéder à ton assistante.</p>
+
+<form id="form">
+<input id="email" type="email" placeholder="Adresse e-mail" required>
+<input id="password" type="password" placeholder="Mot de passe" required minlength="6">
+<button id="submit" type="submit">Se connecter</button>
+</form>
+
+<button class="switch" id="changer" type="button">Créer un compte</button>
+<div id="message"></div>
+</div>
+</main>
+
+<section id="chat">
 <div id="messages">
-<div class="msg bot">Bonjour Kheran ! Je suis KHEÏTTE, ton assistant personnel. Comment puis-je t’aider ?</div>
+<div class="msg bot">Bonjour ! Je suis KHEÏTTE. Comment puis-je t'aider ?</div>
 </div>
 <div id="zone">
 <input id="question" placeholder="Écris ton message...">
 <button onclick="envoyer()">Envoyer</button>
 </div>
+<button id="logout" onclick="deconnexion()">Se déconnecter</button>
+</section>
+
 <script>
-function envoyer(){
-const input=document.getElementById('question');
-const texte=input.value.trim();
-if(!texte)return;
-const messages=document.getElementById('messages');
-const user=document.createElement('div');
-user.className='msg user';
-user.textContent=texte;
-messages.appendChild(user);
-const bot=document.createElement('div');
-bot.className='msg bot';
-bot.textContent="Connexion au serveur...";
-fetch("https://khe-itte-api.onrender.com/chat", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ message: texte })
-})
-  .then(async r => {
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.erreur || "Erreur du serveur");
-    bot.textContent = data.reponse;
-  })
-  .catch(() => {
-    bot.textContent = "Je n'arrive pas à répondre pour le moment. Réessaie.";
+const API="https://khe-itte-api.onrender.com";
+let inscription=false;
+
+const form=document.getElementById("form");
+const message=document.getElementById("message");
+
+document.getElementById("changer").onclick=()=>{
+ inscription=!inscription;
+ document.getElementById("titre").textContent=inscription?"Créer ton compte":"Bienvenue sur KHEÏTTE";
+ document.getElementById("description").textContent=inscription?"Inscris-toi pour commencer.":"Connecte-toi pour accéder à ton assistante.";
+ document.getElementById("submit").textContent=inscription?"S'inscrire":"Se connecter";
+ document.getElementById("changer").textContent=inscription?"J'ai déjà un compte":"Créer un compte";
+ message.textContent="";
+};
+
+form.onsubmit=async(e)=>{
+ e.preventDefault();
+ message.textContent="Patiente un instant...";
+ const email=document.getElementById("email").value.trim();
+ const password=document.getElementById("password").value;
+ try{
+  const r=await fetch(API+(inscription?"/inscription":"/connexion"),{
+   method:"POST",
+   headers:{"Content-Type":"application/json","Authorization":"Bearer "+sessionStorage.getItem("kheitte_token")},
+   body:JSON.stringify({email,password})
   });
-messages.appendChild(bot);
-input.value='';
-messages.scrollTop=messages.scrollHeight;
+  const data=await r.json();
+  if(!r.ok)throw new Error(data.erreur||"Une erreur est survenue.");
+
+  if(inscription){
+   message.textContent=data.message||"Inscription reçue. Vérifie tes e-mails.";
+  }else{
+   sessionStorage.setItem("kheitte_token",data.access_token);
+   document.getElementById("auth").style.display="none";
+   document.getElementById("chat").style.display="block";
+  }
+ }catch(err){
+  message.textContent=err.message;
+ }
+};
+
+async function envoyer(){
+ const input=document.getElementById("question");
+ const texte=input.value.trim();
+ if(!texte)return;
+
+ const messages=document.getElementById("messages");
+ const user=document.createElement("div");
+ user.className="msg user";
+ user.textContent=texte;
+ messages.appendChild(user);
+ input.value="";
+
+ const bot=document.createElement("div");
+ bot.className="msg bot";
+ bot.textContent="KHEÏTTE réfléchit...";
+ messages.appendChild(bot);
+
+ try{
+  const r=await fetch(API+"/chat",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({message:texte})
+  });
+  const data=await r.json();
+  if(!r.ok)throw new Error(data.erreur||"Erreur du serveur.");
+  bot.textContent=data.reponse;
+ }catch(err){
+  bot.textContent="Je ne peux pas répondre pour le moment.";
+ }
+ messages.scrollTop=messages.scrollHeight;
 }
-document.getElementById('question').addEventListener('keydown',e=>{
-if(e.key==='Enter')envoyer();
+
+document.getElementById("question").addEventListener("keydown",e=>{
+ if(e.key==="Enter")envoyer();
 });
+
+function deconnexion(){
+ sessionStorage.removeItem("kheitte_token");
+ document.getElementById("chat").style.display="none";
+ document.getElementById("auth").style.display="block";
+ document.getElementById("password").value="";
+ message.textContent="Tu es déconnecté.";
+}
 </script>
 </body>
 </html>
-

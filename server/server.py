@@ -100,6 +100,23 @@ def connexion():
 
 @app.route("/chat", methods=["POST"])
 def chat():
+    token = request.headers.get("Authorization", "")
+    if not token.startswith("Bearer "):
+        return jsonify({"erreur": "Connexion obligatoire."}), 401
+    url = os.environ.get("SUPABASE_URL", "").rstrip("/")
+    key = os.environ.get("SUPABASE_ANON_KEY", "")
+    if not url or not key:
+        return jsonify({"erreur": "Configuration Supabase manquante."}), 503
+    try:
+        verification = requests.get(
+            f"{url}/auth/v1/user",
+            headers={"apikey": key, "Authorization": token},
+            timeout=20
+        )
+        if not verification.ok:
+            return jsonify({"erreur": "Session invalide ou expirée."}), 401
+    except requests.RequestException:
+        return jsonify({"erreur": "Service d authentification indisponible."}), 503
     data = request.get_json(silent=True) or {}
     message = data.get("message", "").strip()
 
@@ -152,5 +169,4 @@ def chat():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=False)
-0
 
