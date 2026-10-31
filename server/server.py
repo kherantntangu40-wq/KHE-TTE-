@@ -1,4 +1,5 @@
 import os
+import requests
 import logging
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -19,6 +20,83 @@ def accueil():
 @app.route("/sante")
 def sante():
     return jsonify({"statut": "fonctionnel"})
+
+
+# SUPABASE_AUTH_ROUTES
+
+def supabase_auth(endpoint, payload):
+    url = os.environ.get("SUPABASE_URL", "").rstrip("/")
+    key = os.environ.get("SUPABASE_ANON_KEY", "")
+
+    if not url or not key:
+        return None, "Configuration Supabase manquante."
+
+    try:
+        response = requests.post(
+            f"{url}/auth/v1/{endpoint}",
+            headers={
+                "apikey": key,
+                "Authorization": f"Bearer {key}",
+                "Content-Type": "application/json"
+            },
+            json=payload,
+            timeout=20
+        )
+        try:
+            result = response.json()
+        except ValueError:
+            result = {}
+
+        return (result, None) if response.ok else (None, result.get("msg") or result.get("message") or result.get("error_description") or "Vérifie ton adresse e-mail et ton mot de passe.")
+    except requests.RequestException:
+        return None, "Impossible de joindre le service d'authentification."
+
+@app.route("/inscription", methods=["POST"])
+def inscription():
+    data = request.get_json(silent=True) or {}
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "")
+
+    if not email or not password:
+        return jsonify({"erreur": "E-mail et mot de passe obligatoires."}), 400
+
+    resultat, erreur = supabase_auth("signup", {
+        "email": email,
+        "password": password
+    })
+
+    if erreur:
+        return jsonify({"erreur": erreur}), 400
+
+    return jsonify({
+        "message": "Inscription reçue. Vérifie ta boîte e-mail pour confirmer ton compte si nécessaire.",
+        "utilisateur": (resultat.get("user") or {}).get("email")
+    }), 201
+
+@app.route("/connexion", methods=["POST"])
+def connexion():
+    data = request.get_json(silent=True) or {}
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "")
+
+    if not email or not password:
+        return jsonify({"erreur": "E-mail et mot de passe obligatoires."}), 400
+
+    resultat, erreur = supabase_auth("token?grant_type=password", {
+        "email": email,
+        "password": password
+    })
+
+    if erreur:
+        return jsonify({"erreur": erreur}), 401
+
+    return jsonify({
+        "message": "Connexion réussie.",
+        "access_token": resultat.get("access_token"),
+        "refresh_token": resultat.get("refresh_token"),
+        "expires_in": resultat.get("expires_in"),
+        "utilisateur": (resultat.get("user") or {}).get("email")
+    }), 200
 
 @app.route("/chat", methods=["POST"])
 def chat():
